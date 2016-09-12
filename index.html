@@ -289,6 +289,9 @@
       var event_list = [];
       var path_length = 3;
       var funnel_select = [];
+      // only these events will be included, use [] if you want all events to be included
+      var event_restrict = [];
+      //ex: var event_restrict = ['KPI: App Launch', 'DataCollectionAcceptance', 'KPI: Shutter pressed'];
       
       // add events
       var $events = $('#events');
@@ -338,6 +341,7 @@
           }
         }
         event_list = events;
+        console.log('event list: ' + event_list)
         runQuery();
       });
       $('#funnel-query').on('click', function() {
@@ -352,6 +356,7 @@
           if (result != 'error' && result != undefined) {
             resetEvents();
             event_list = newEvents;
+            console.log('event list: ' + event_list)
             runQuery();
           }
         });
@@ -374,6 +379,7 @@
             path_length: path_length,
             from_date: date_to_string(dateVal.from),
             to_date: date_to_string(dateVal.to),
+            event_restrict: event_restrict,
           };
         var script = $('#jql').html();
         script = $.trim(script);
@@ -443,6 +449,7 @@
         label.addClass('active');
         var event = label.text();
         var index = event_list.indexOf(event) - 1;
+        console.log(event_list[index])
         showFlow(event_list[index]);
       });
       
@@ -678,11 +685,13 @@
     <script type="text/jql" id="jql">
       var EVENT_LIST = params.event_list;
       var PATH_LENGTH =  params.path_length || 3;
+      var RESTRICT_EVENTS = params.event_restrict;
       
       function main() {
           return Events({
               from_date: params.from_date,
-              to_date: params.to_date
+              to_date: params.to_date,
+              event_selectors: restrict_events(RESTRICT_EVENTS)
           })
           .groupByUser(function(state, events) {
               // collect the event list of each user, if they entered the funnel
@@ -758,6 +767,14 @@
                       throw "mismatched types for key: " + key;
                   }
               }
+          }
+          
+          function restrict_events(event_restrict) {
+            var ret = [];
+            for(i=0; i<event_restrict.length; i++) {
+              ret.push({event: event_restrict[i]});
+            }
+            return ret;
           }
       }
 
